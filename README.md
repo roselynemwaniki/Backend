@@ -65,7 +65,7 @@ flask db upgrade
 Start the Flask development server:
 
 python main.py
-The server will be available at http://127.0.0.1:5000.
+The server will be available at http://127.0.0.1:8000.
 
 Running Tests
 To run tests, ensure the test.db database is set up and execute the test scripts.
