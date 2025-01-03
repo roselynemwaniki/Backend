@@ -1,17 +1,15 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from fastapi import FastAPI
+from .routes import router as movie_recommendation_router
+from .models import Base, engine
 
 def create_app():
-    app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///movies.db'  # Use SQLite for simplicity
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    # Create the FastAPI app instance
+    app = FastAPI()
 
-    db.init_app(app)
+    # Include the router for movie recommendations
+    app.include_router(movie_recommendation_router)
 
-    # Import routes and register blueprints
-    from .routes import main
-    app.register_blueprint(main)
+    # Create the database tables (this could be done in a separate setup script if preferred)
+    Base.metadata.create_all(bind=engine)
 
     return app
