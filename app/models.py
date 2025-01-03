@@ -1,32 +1,54 @@
-from .__init__ import db
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Float
+from sqlalchemy.orm import sessionmaker, declarative_base, relationship
+from sqlalchemy.ext.declarative import declarative_base
 
-class Movie(db.Model):
-    _tablename_ = 'movies'
+# Database configuration
+DATABASE_URL = "sqlite:///./test.db"  # Use your actual database URL
 
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    genre = db.Column(db.String(50), nullable=False)
-    release_year = db.Column(db.Integer, nullable=False)
-    description = db.Column(db.Text, nullable=True)
+# Create SQLAlchemy engine
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
-    def _repr_(self):
-        return f"<Movie {self.title}>"
+# Create a new sessionmaker instance
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-class User(db.Model):
-    _tablename_ = 'users'
+# Create a base class for your models
+Base = declarative_base()
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
+# User Model
+class User(Base):
+    __tablename__ = 'users'
 
-class Review(db.Model):
-    _tablename_ = 'reviews'
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    password = Column(String)
 
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
-    review = db.Column(db.Text, nullable=False)
-    rating = db.Column(db.Integer, nullable=False)
+    recommendations = relationship("Recommendation", back_populates="user")
 
-    user = db.relationship('User', backref='reviews')
-    movie = db.relationship('Movie', backref='reviews')
+# Movie Model
+class Movie(Base):
+    __tablename__ = 'movies'
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String)
+    genre = Column(String)
+    release_year = Column(Integer)
+    description = Column(String)
+    image_url = Column(String)
+
+    recommendations = relationship("Recommendation", back_populates="movie")
+
+# Recommendation Model
+class Recommendation(Base):
+    __tablename__ = 'recommendations'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    movie_id = Column(Integer, ForeignKey('movies.id'))
+    rating = Column(Float)
+
+    user = relationship("User", back_populates="recommendations")
+    movie = relationship("Movie", back_populates="recommendations")
+
+# Create the database tables
+Base.metadata.create_all(bind=engine)
